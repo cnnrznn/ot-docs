@@ -18,8 +18,9 @@ def main(args):
     msg['op'] = 'OPEN'
     msg['docfn'] = args.name
 
-    json.dump(msg, sk)
-    res = json.load(sk)
+    sk.send(json.dumps(msg))
+    res = json.loads(sk.recv(2048))
+    print(res)
 
     sk.close()
 
@@ -34,8 +35,9 @@ def main(args):
     msg['docfn'] = args.name
     msg['pid'] = pid
 
-    json.dump(msg, sk)
-    res = json.load(sk)
+    sk.send(json.dumps(msg))
+    res = json.load(sk.recv(2048))
+    print(res)
 
     sk.close()
 

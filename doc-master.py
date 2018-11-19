@@ -40,7 +40,7 @@ def main_loop(sk, workers, docs):
         res = dict()
         conn, addr, = sk.accept()
 
-        data = json.load(conn)
+        data = json.loads(conn.recv(2048))
 
         if data['op'] == 'OPEN':
             next_id += 1
@@ -59,7 +59,7 @@ def main_loop(sk, workers, docs):
 
             res['op'] = 'OK'
 
-        json.dump(res, conn)
+        conn.send(json.dumps(res))
 
         conn.close()
 
