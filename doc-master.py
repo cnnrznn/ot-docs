@@ -5,9 +5,11 @@ import socket
 
 import document
 
+PORT = 4444
+
 def initialize():
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.bind(('', 3333))
+    sk.bind(('', PORT))
     sk.listen(10)
 
     # load IP's of worker nodes
