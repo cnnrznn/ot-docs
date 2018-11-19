@@ -30,7 +30,7 @@ def main(args):
     pid = res['pid']
     ip = res['ip']
 
-    if res['op'] = 'NOK':
+    if 'NOK' == res['op']:
         return 1
 
     # TODO if success, spawn ot client and wait for death
@@ -45,7 +45,7 @@ def main(args):
     msg['pid'] = pid
 
     sk.send(json.dumps(msg))
-    res = json.load(sk.recv(2048))
+    res = json.loads(sk.recv(2048))
     print(msg)
     print(res)
     print()
