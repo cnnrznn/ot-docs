@@ -40,22 +40,22 @@ def main_loop(sk, workers, docs):
         res = dict()
         conn, addr, = sk.accept()
 
-        data = json.loads(conn.recv(2048))
+        msg = json.loads(conn.recv(2048))
 
-        if data['op'] == 'OPEN':
+        if msg['op'] == 'OPEN':
             next_id += 1
 
-            if data['docfn'] not in docs:
-                docs[data['docfn']] = Document(data['docfn'], workers)
+            if msg['docfn'] not in docs:
+                docs[msg['docfn']] = Document(msg['docfn'], workers)
 
-            ip = docs[data['docfn']].open(next_id)
+            ip = docs[msg['docfn']].open(next_id)
 
             res['ip'] = ip
             res['pid'] = next_id
             res['op'] = 'OK'
 
-        elif data['op'] == 'CLOSE':
-            docs[data['docfn']].close(data['pid'])
+        elif msg['op'] == 'CLOSE':
+            docs[msg['docfn']].close(msg['pid'])
 
             res['op'] = 'OK'
 

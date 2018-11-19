@@ -10,6 +10,7 @@ PORT = 4444
 
 def main(args):
     pid = -1
+    ip = ''
 
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sk.connect(('35.229.114.130', PORT))
@@ -20,14 +21,22 @@ def main(args):
 
     sk.send(json.dumps(msg))
     res = json.loads(sk.recv(2048))
+    print(msg)
     print(res)
+    print()
 
     sk.close()
 
+    pid = res['pid']
+    ip = res['ip']
+
+    if res['op'] = 'NOK':
+        return 1
+
     # TODO if success, spawn ot client and wait for death
-    # TODO if failure, handle
 
     # cleanup
+    sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sk.connect(('35.229.114.130', PORT))
 
     msg = dict()
@@ -37,7 +46,9 @@ def main(args):
 
     sk.send(json.dumps(msg))
     res = json.load(sk.recv(2048))
+    print(msg)
     print(res)
+    print()
 
     sk.close()
 
