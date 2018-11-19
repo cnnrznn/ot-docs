@@ -3,18 +3,23 @@
 import json
 import socket
 
-import document.py
+import document
 
 def initialize():
-    sk = socket(socket.AF_INET, socket.SOCK_STREAM)
+    sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sk.bind(('', 3333))
     sk.listen(10)
 
-    # TODO load IP's of worker nodes
+    # load IP's of worker nodes
+    workers = []
+    with open('.workers.txt', 'r') as inf:
+        for line in inf:
+            workers.append(line)
+            print('loaded worker {}'.format(line))
 
     # TODO load metadata of existing documents
 
-    return sk, workers, dict()
+    return (sk, workers, dict())
 
 def main_loop(sk, workers, docs):
     # protocol:
@@ -47,7 +52,7 @@ def main_loop(sk, workers, docs):
             res['pid'] = next_id
             res['op'] = 'OK'
 
-        else if data['op'] == 'CLOSE':
+        elif data['op'] == 'CLOSE':
             docs[data['docfn']].close(data['pid'])
 
             res['op'] = 'OK'
@@ -57,4 +62,4 @@ def main_loop(sk, workers, docs):
         conn.close()
 
 if __name__ == '__main__':
-    main_loop(initialize())
+    main_loop(*initialize())
