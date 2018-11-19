@@ -1,9 +1,11 @@
 class Document:
-    def __init__(self, name):
+    def __init__(self, name, workers):
         self.name = name
-        self.replicas = []
+        self.replicas = ['TODO']
         self.collabs = set()
         self.where = ''
+
+        # TODO create empty document on all replicas
 
     def open(self, pid):
         if 0 == len(self.collabs):

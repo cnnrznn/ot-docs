@@ -46,7 +46,7 @@ def main_loop(sk, workers, docs):
             next_id += 1
 
             if data['docfn'] not in docs:
-                docs[data['docfn']] = Document(data['docfn'])
+                docs[data['docfn']] = Document(data['docfn'], workers)
 
             ip = docs[data['docfn']].open(next_id)
 
