@@ -3,7 +3,7 @@
 import json
 import socket
 
-import document
+from document import Document
 
 PORT = 4444
 
