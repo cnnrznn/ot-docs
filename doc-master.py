@@ -23,7 +23,7 @@ def initialize():
 
     return (sk, workers, dict())
 
-def main_loop(sk, workers, docs):
+def main(sk, workers, docs):
     # protocol:
     #   1. client connects with tcp
     #   2a. client sends OPEN <document>
@@ -67,4 +67,4 @@ def main_loop(sk, workers, docs):
         conn.close()
 
 if __name__ == '__main__':
-    main_loop(*initialize())
+    main(*initialize())
