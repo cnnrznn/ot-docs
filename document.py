@@ -9,6 +9,8 @@ class Document:
 
         # TODO spawn servers on replicas on port 'port'
 
+        return
+
     def open(self, pid):
         if pid in self.collabs:
             exit(1)                 # why openning twice?
