@@ -26,6 +26,16 @@ class Document:
 
         if 0 == len(self.collabs):
             self.ip = ''
-            self.port = ''
 
         return
+
+    def checkup(self):
+        """
+        Perform a checkup by sending heartbeats to all sites.
+
+        Three cases:
+            - self.ip fails
+            - self.replica[i] fails
+            - self.sites[j] fails
+        """
+        pass
