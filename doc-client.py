@@ -29,6 +29,7 @@ def main(args):
 
     pid = res['pid']
     ip = res['ip']
+    port = res['port']
 
     if 'NOK' == res['op']:
         return 1

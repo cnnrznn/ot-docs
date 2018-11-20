@@ -5,7 +5,7 @@ import socket
 
 from document import Document
 
-PORT = 4444
+PORT = 3333
 
 def initialize():
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,6 +35,7 @@ def main_loop(sk, workers, docs):
 
     heartbeats = [0 for w in workers]
     next_id = 0
+    next_port = 10000
 
     while True:
         res = dict()
@@ -46,11 +47,13 @@ def main_loop(sk, workers, docs):
             next_id += 1
 
             if msg['docfn'] not in docs:
-                docs[msg['docfn']] = Document(msg['docfn'], workers)
+                next_port += 1
+                docs[msg['docfn']] = Document(msg['docfn'], next_port, workers)
 
-            ip = docs[msg['docfn']].open(next_id)
+            ip, port = docs[msg['docfn']].open(next_id)
 
             res['ip'] = ip
+            res['port'] = port
             res['pid'] = next_id
             res['op'] = 'OK'
 
