@@ -36,7 +36,7 @@ def main(args):
     if 'NOK' == res['op']:
         return 1
 
-    sp.call(['./client', ip, str(port)], stdout=sp.PIPE, stderr=sp.PIPE)
+    sp.call(['./client', ip, str(port)])
 
     # cleanup
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
