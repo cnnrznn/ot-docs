@@ -6,6 +6,7 @@ import socket
 
 import document
 
+ADDR = '35.237.247.180'
 PORT = 3333
 
 def main(args):
@@ -13,7 +14,7 @@ def main(args):
     ip = ''
 
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.connect(('35.237.247.180', PORT))
+    sk.connect((ADDR, PORT))
 
     msg = dict()
     msg['op'] = 'OPEN'
@@ -38,7 +39,7 @@ def main(args):
 
     # cleanup
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.connect(('35.229.114.130', PORT))
+    sk.connect((ADDR, PORT))
 
     msg = dict()
     msg['op'] = 'CLOSE'
