@@ -1,3 +1,6 @@
+import json
+import socket
+
 class Document:
     def __init__(self, name, port, workers):
         self.name = name
@@ -7,7 +10,8 @@ class Document:
         self.ip = ''
         self.port = port
 
-        # TODO spawn servers on replicas on port 'port'
+        for r in replicas:
+            self._activate_replica(r)
 
         return
 
@@ -28,6 +32,26 @@ class Document:
 
         if 0 == len(self.collabs):
             self.ip = ''
+
+        return
+
+    def _activate_replica(self, replica):
+        """
+        Connect to document server at replica and tell
+        it to start the server for this document at
+        this port.
+        """
+        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sk.connect((replica, 3333))
+
+        msg = dict()
+        msg['op'] = 'ACTIVATE'
+        msg['docfn'] = self.name
+        msg['port'] = self.port
+
+        sk.send(json.dumps(msg))
+
+        sk.close()
 
         return
 
