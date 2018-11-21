@@ -11,15 +11,17 @@ def main():
 
     while True:
         conn, addr = sk.accept()
-
         msg = json.loads(conn.recv(2048))
+        conn.close()
+
+        # TODO check if msg/document is legit
 
         name = msg['docfn']
         port = msg['port']
 
         sp.call(['./server', port], stdout=open(name, 'w'))
 
-        conn.close()
+    return
 
 if __name__ == '__main__':
     main()
