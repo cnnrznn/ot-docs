@@ -10,7 +10,7 @@ class Document:
         self.ip = ''
         self.port = port
 
-        for r in replicas:
+        for r in self.replicas:
             self._activate_replica(r)
 
         return

@@ -6,14 +6,14 @@ import socket
 
 import document
 
-PORT = 4444
+PORT = 3333
 
 def main(args):
     pid = -1
     ip = ''
 
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.connect(('35.229.114.130', PORT))
+    sk.connect(('35.237.247.180', PORT))
 
     msg = dict()
     msg['op'] = 'OPEN'
