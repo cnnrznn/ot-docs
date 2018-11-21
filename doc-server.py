@@ -6,7 +6,7 @@ import subprocess as sp
 
 def main():
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.bind(('', 3333))
+    sk.bind(('', 4444))
     sk.listen(10)
 
     while True:
@@ -19,7 +19,9 @@ def main():
         name = msg['docfn']
         port = msg['port']
 
-        sp.call(['./server', port], stdout=open(name, 'w'))
+        print('Received {}'.format(msg))
+
+        sp.Popen(['./server', str(port)], stdout=open(name, 'w'))
 
     return
 

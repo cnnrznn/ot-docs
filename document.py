@@ -42,7 +42,7 @@ class Document:
         this port.
         """
         sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sk.connect((replica, 3333))
+        sk.connect((replica, 4444))
 
         msg = dict()
         msg['op'] = 'ACTIVATE'
