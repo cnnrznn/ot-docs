@@ -3,6 +3,7 @@
 import argparse
 import json
 import socket
+import subprocess as sp
 
 import document
 
@@ -35,7 +36,7 @@ def main(args):
     if 'NOK' == res['op']:
         return 1
 
-    # TODO if success, spawn ot client and wait for death
+    sp.call(['./client', ip, str(port)], stdout=sp.PIPE, stderr=sp.PIPE)
 
     # cleanup
     sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

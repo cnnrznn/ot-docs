@@ -21,7 +21,7 @@ def main():
 
         print('Received {}'.format(msg))
 
-        sp.Popen(['./server', str(port)], stdout=open(name, 'w'))
+        sp.Popen(['./server', str(port)], stderr=open(name, 'w'), stdout=sp.PIPE)
 
     return
 
