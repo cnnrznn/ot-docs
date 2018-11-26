@@ -10,56 +10,47 @@ import document
 ADDR = '35.237.247.180'
 PORT = 3333
 
-def main(args):
-    pid = -1
-    ip = ''
+class DocClient:
 
-    sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.connect((ADDR, PORT))
+    def __init__(self, name):
+        msg = dict()
+        msg['op'] = 'OPEN'
+        msg['docfn'] = name
 
-    msg = dict()
-    msg['op'] = 'OPEN'
-    msg['docfn'] = args.name
+        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sk.connect((ADDR, PORT))
 
-    sk.send(json.dumps(msg))
-    res = json.loads(sk.recv(2048))
-    print(msg)
-    print(res)
-    print()
+        sk.send(json.dumps(msg))
+        res = json.loads(sk.recv(2048))
 
-    sk.close()
+        sk.close()
 
-    pid = res['pid']
-    ip = res['ip']
-    port = res['port']
+        self.pid = res['pid']
+        self.ip = res['ip']
+        self.port = res['port']
+        self.name = name
 
-    if 'NOK' == res['op']:
-        return 1
+        self.engine = sp.Popen(['./client'], stdin=sp.PIPE, stdout=sp.PIPE)
 
-    sp.call(['./client', ip, str(port)])
+        return
 
-    # cleanup
-    sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.connect((ADDR, PORT))
+    def __del__(self):
+        # cleanup
+        sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sk.connect((ADDR, PORT))
 
-    msg = dict()
-    msg['op'] = 'CLOSE'
-    msg['docfn'] = args.name
-    msg['pid'] = pid
+        msg = dict()
+        msg['op'] = 'CLOSE'
+        msg['docfn'] = self.name
+        msg['pid'] = self.pid
 
-    sk.send(json.dumps(msg))
-    res = json.loads(sk.recv(2048))
-    print(msg)
-    print(res)
-    print()
+        sk.send(json.dumps(msg))
+        res = json.loads(sk.recv(2048))
 
-    sk.close()
+        sk.close()
 
-    return
+        self.engine.kill()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('name',
-                        help='Name of document to open')
+        return
 
-    main(parser.parse_args())
+client = DocClient("a file") # TODO get document name from vim command
