@@ -2,23 +2,19 @@ import json
 import socket
 
 class Document:
-    def __init__(self, name, port, workers):
+    def __init__(self, name, port, replicas):
         self.name = name
-        self.sites = list(workers)
-        self.replicas = list(workers)       # TODO change to subset of workers
+        self.replicas = set(replicas)
         self.collabs = set()
         self.ip = ''
         self.port = port
 
-        for r in self.replicas:
+        for r in replicas:
             self._activate_replica(r)
 
         return
 
     def open(self, pid):
-        if pid in self.collabs:
-            exit(1)                 # why openning twice?
-
         if 0 == len(self.collabs):
             # TODO load balance, pick worker to launch on
             self.ip = self.replicas[0]
@@ -47,21 +43,12 @@ class Document:
         msg = dict()
         msg['op'] = 'ACTIVATE'
         msg['docfn'] = self.name
+        msg['ip'] = replica
         msg['port'] = self.port
+        msg['reps'] = self.replicas
 
         sk.send(json.dumps(msg))
 
         sk.close()
 
         return
-
-    def checkup(self):
-        """
-        Perform a checkup by sending heartbeats to all sites.
-
-        Three cases:
-            - self.ip fails
-            - self.replica[i] fails
-            - self.sites[j] fails
-        """
-        pass
