@@ -30,10 +30,10 @@ class DocClient:
         self.sk = socket.socket.(socket.AF_INET, socket.SOCK_STREAM)
         self.sk.connect((ip, port))
 
-        res = json.loads(msgr.safe_recv(sk))
+        msg = json.loads(msgr.safe_recv(sk))
 
-        self.pid = res['pid']
-        self.revision = res['revision']
+        self.pid = msg['pid']
+        self.revision = msg['rev']
 
         self.engine = sp.Popen(['./client', str(self.pid), str(self.revision)], stdin=sp.PIPE, stdout=sp.PIPE)
 
@@ -62,11 +62,48 @@ class DocClient:
     def __str__(self):
         return 'Not implemented OMEGALUL'
 
-    def send_op():
-        pass
+    def send_op(op):
+        self.engine.stdin.write('-1,0,{},{},{}\n'.format(op['type'], op['c'], op['pos']))
+        return
 
     def recv_ops():
-        pass
+        ops = []
+        messages = []
+
+        while True:
+            rlist = [self.sk]
+            rlist, _, _ = select.select(rlist, [], [])
+            if 0 == len(rlist):
+                break
+            messages.append(json.loads(msgr.safe_recv(sk)))
+
+        for msg in messages:
+            self.engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['rev'], msg['type'],
+                                                                msg['c'], msg['pos']))
+        messages.clear()
+
+        while True:
+            rlist = [self.engine.stdout]
+            rlist, _, _ = select.select(rlist, [], [])
+            if 0 == len(rlist):
+                break
+            data = self.engine.stdout.readline().split[',']
+            msg = dict()
+            msg['pid'] = int(data[0])
+            msg['rev'] = int(data[1])
+            msg['type'] = int(data[2])
+            msg['c'] = data[3]
+            msg['pos'] = int(data[4])
+
+            if -1 == msg['pid']:
+                ops.append((msg['type'], msg['c'], msg['pos']))
+            else:
+                messages.append(msg)
+
+        for msg in messages:
+            msgr.safe_send(self.sk, json.dumps(msg))
+
+        return ops
 
 if __name__ == '__main__':
     client = DocClient("myfile", ADDR, PORT)
