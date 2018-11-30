@@ -4,100 +4,93 @@ import json
 import select
 import socket
 import subprocess as sp
-import multiprocess as mp
 
-from repldoc import ReplDocument
+import messenger as msgr
 
-def safe_send(sk, buf):
-    total = 0
-    size = len(buf)
+__next_pid = 0
 
-    while total < size:
-        total += sk.send(buf[total:])
+def next_pid():
+    global __next_pid
 
-    return
+    __next_pid += 1
 
-def safe_recv(sk, size):
-    buf = ''
+    return __next_pid
 
-    while len(buf) < size:
-        buf += sk.recv(size - len(buf))
+def line2msg(line):
+    data = line.split(',')
 
-    return
+    msg = dict()
+    msg['pid'] = int(data[0])
+    msg['rev'] = int(data[1])
+    msg['type'] = int(data[2])
+    msg['c'] = data[3]
+    msg['pos'] = int(data[4])
 
-def replica(name, ip, port, replicas):
-    rdoc = ReplDocument(name, ip, port, replicas)
+    return msg
 
-    # protocol
-    lsk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    lsk.bind(('', port))
-    lsk.listen(10)
+def op_perform(buf, msg):
+    typ = msg['type']
+    c = msg['c']
+    pos = msg['pos']
 
-    rlist = [lsk]
+    if 1 == typ:
+        if len(buf) < pos:
+            buf.extend([' '] * (pos - len(buf)))
+        buf.insert(pos, c)
+    elif 2 == typ:
+        buf.pop(pos)
 
-    while True:
-        rlist, _, _ = select.select(rlist, [], [])
-        ops = set()
-
-        for rsk in rlist:
-            if lsk == rsk:
-                #   1. connect to clients
-                conn, addr = lsk.accept()
-                rlist.append(conn)
-
-                # send revision, document state
-                data = dict()
-                data = rdoc.get_state()
-                buf = json.dumps(data)
-
-                conn.send(len(buf).to_bytes(8, byteorder='little'))
-                safe_send(conn, buf)
-            else:
-                #   2. receive operations from clients
-                size = int.from_bytes(rsk.recv(8), byteorder='little')
-                op = json.loads(safe_recv(sk, size))
-                ops.add(op)
-
-        # broadcast results
-        newOps = rdoc.process_ops(ops)
-        for op in newOps:
-            buf = json.dumps(op)
-            for sk in rlist[1:]:
-                sk.send(len(buf).to_bytes(8, byteorder='little'))
-                safe_send(sk, buf)
-
-    return
-
+    return buf
 
 def main():
-    servers = dict()    # docfn -> Process mapping
+    revision = 0
+    buf = []
 
-    sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sk.bind(('', 4444))
-    sk.listen(10)
+    # start engine
+    engine = sp.Popen(['./core/server'], stdin=sp.PIPE, stdout=sp.PIPE)
+
+    lsk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsk.bind(('', 4444))
+    lsk.listen(10)
+
+    sockets = set([lsk])
 
     while True:
-        conn, addr = sk.accept()
-        msg = json.loads(conn.recv(1024))
-        conn.close()
+        rlist, _, _ = select.select(sockets, [], [])
 
-        # TODO check if msg/document is legit
+        ct = 0
 
-        name = msg['docfn']
-        ip = msg['ip']
-        port = msg['port']
-        replicas = msg['reps']
+        for rsk in rlist:
+            if rsk == lsk:
+                conn, addr = lsk.accept()
 
-        print('Received {}'.format(msg))
+                msg = dict()
+                msg['rev'] = revision
+                msg['pid'] = next_pid()
 
-        if name in servers:
-            print('Already running that document server')
-            continue
+                msgr.safe_send(conn, json.dumps(res))
+                msgr.safe_send(conn, ''.join(buf))
 
-        servers[name] = mp.Process(target=replica, args=(name, ip, port, replicas))
-        servers[name].start()
+                sockets.add(conn)
+            else:
+                packet = msgr.safe_recv(rsk)
+                if 0 == len(packet):
+                    sockets.remove(rsk)
+                else:
+                    msg = json.loads(packet)
+                    engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['revision'],
+                                                            msg['type'], msg['char'], msg['pos']))
+                    ct += 1
 
-    return
+        for i in range(ct):
+            revision += 1
+
+            data = engine.stdout.readline()
+            msg = line2msg(data)
+            buf = op_perform(buf, msg)
+
+            for sk in sockets[1:]:
+                msgr.safe_send(sk, json.dumps(msg))
 
 if __name__ == '__main__':
     main()
