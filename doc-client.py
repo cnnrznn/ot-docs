@@ -66,11 +66,11 @@ class DocClient:
     def get_initial_state(self):
         return self.initial_state
 
-    def send_op(op):
-        self.engine.stdin.write('-1,0,{},{},{}\n'.format(op['type'], op['c'], op['pos']))
+    def send_op(self, op):
+        self.engine.stdin.write('-1,0,{},{},{}\n'.format(op[0], op[1], op[2]))
         return
 
-    def recv_ops():
+    def recv_ops(self):
         ops = []
         messages = []
 
