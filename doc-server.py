@@ -68,7 +68,7 @@ def main():
                 msg['rev'] = revision
                 msg['pid'] = next_pid()
 
-                msgr.safe_send(conn, json.dumps(res))
+                msgr.safe_send(conn, json.dumps(msg))
                 msgr.safe_send(conn, ''.join(buf))
 
                 sockets.add(conn)
@@ -78,8 +78,8 @@ def main():
                     sockets.remove(rsk)
                 else:
                     msg = json.loads(packet)
-                    engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['revision'],
-                                                            msg['type'], msg['char'], msg['pos']))
+                    engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['rev'],
+                                                            msg['type'], msg['c'], msg['pos']))
                     ct += 1
 
         for i in range(ct):
