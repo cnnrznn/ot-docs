@@ -30,10 +30,11 @@ class DocClient:
         self.sk = socket.socket.(socket.AF_INET, socket.SOCK_STREAM)
         self.sk.connect((ip, port))
 
-        msg = json.loads(msgr.safe_recv(sk))
+        msg = json.loads(msgr.safe_recv(self.sk))
 
         self.pid = msg['pid']
         self.revision = msg['rev']
+        self.initial_state = msgr.safe_recv(self.sk)
 
         self.engine = sp.Popen(['./client', str(self.pid), str(self.revision)], stdin=sp.PIPE, stdout=sp.PIPE)
 
@@ -62,6 +63,9 @@ class DocClient:
     def __str__(self):
         return 'Not implemented OMEGALUL'
 
+    def get_initial_state(self):
+        return self.initial_state
+
     def send_op(op):
         self.engine.stdin.write('-1,0,{},{},{}\n'.format(op['type'], op['c'], op['pos']))
         return
@@ -75,7 +79,7 @@ class DocClient:
             rlist, _, _ = select.select(rlist, [], [])
             if 0 == len(rlist):
                 break
-            messages.append(json.loads(msgr.safe_recv(sk)))
+            messages.append(json.loads(msgr.safe_recv(self.sk)))
 
         for msg in messages:
             self.engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['rev'], msg['type'],
