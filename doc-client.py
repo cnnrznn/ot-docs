@@ -120,10 +120,11 @@ if __name__ == '__main__':
     client = DocClient("myfile", ADDR, PORT)
 
     # TODO enter some text
-    client.send_op((1, 'c', 0))
-    client.send_op((1, 'o', 1))
-    client.send_op((1, 'n', 2))
-    client.send_op((1, 'n', 3))
+    with open('testfile.{}'.format(client.pid), 'r') as inf:
+        for line in inf:
+            line = line.split(',')
+            op = (int(line[0]), line[1], int(line[2]))
+            client.send_op(op)
 
     ops = []
     for i in range(20):
