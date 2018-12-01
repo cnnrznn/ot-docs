@@ -1,5 +1,6 @@
 def safe_send(sk, buf):
     total = 0
+    buf = buf.encode()
     size = len(buf)
 
     sk.send(size.to_bytes(8, byteorder='little'))
@@ -10,10 +11,12 @@ def safe_send(sk, buf):
     return
 
 def safe_recv(sk):
-    buf = ''
-    size = int.from_bytes(sk.recv(8), bytorder='little')
+    buf = bytearray()
+    size = int.from_bytes(sk.recv(8), byteorder='little')
+    total = 0
 
-    while len(buf) < size:
+    while total < size:
         buf += sk.recv(size - total)
+        total = len(buf)
 
-    return buf
+    return buf.decode()

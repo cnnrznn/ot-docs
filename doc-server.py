@@ -47,7 +47,7 @@ def main():
     buf = []
 
     # start engine
-    engine = sp.Popen(['./core/server'], stdin=sp.PIPE, stdout=sp.PIPE)
+    engine = sp.Popen(['./server'], stdin=sp.PIPE, stdout=sp.PIPE)
 
     lsk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     lsk.bind(('', 4444))

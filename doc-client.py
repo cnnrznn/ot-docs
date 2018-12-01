@@ -8,8 +8,9 @@ import subprocess as sp
 import document
 import messenger as msgr
 
-ADDR = '35.237.247.180'
-PORT = 3333
+#ADDR = '35.237.247.180'
+ADDR = 'localhost'
+PORT = 4444
 
 class DocClient:
 
@@ -27,7 +28,7 @@ class DocClient:
 
         #sk.close()
 
-        self.sk = socket.socket.(socket.AF_INET, socket.SOCK_STREAM)
+        self.sk = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sk.connect((ip, port))
 
         msg = json.loads(msgr.safe_recv(self.sk))
@@ -35,6 +36,9 @@ class DocClient:
         self.pid = msg['pid']
         self.revision = msg['rev']
         self.initial_state = msgr.safe_recv(self.sk)
+
+        print(msg)
+        print(self.initial_state)
 
         self.engine = sp.Popen(['./client', str(self.pid), str(self.revision)], stdin=sp.PIPE, stdout=sp.PIPE)
 
