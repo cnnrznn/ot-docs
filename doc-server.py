@@ -44,7 +44,7 @@ def op_perform(buf, msg):
 
 def main():
     revision = 0
-    buf = []
+    docbuf = []
 
     # start engine
     engine = sp.Popen(['./server'], stdin=sp.PIPE, stdout=sp.PIPE)
@@ -53,7 +53,7 @@ def main():
     lsk.bind(('', 4444))
     lsk.listen(10)
 
-    sockets = set([lsk])
+    sockets = [lsk]
 
     while True:
         rlist, _, _ = select.select(sockets, [], [])
@@ -69,28 +69,33 @@ def main():
                 msg['pid'] = next_pid()
 
                 msgr.safe_send(conn, json.dumps(msg))
-                msgr.safe_send(conn, ''.join(buf))
+                msgr.safe_send(conn, ''.join(docbuf))
 
-                sockets.add(conn)
+                sockets.append(conn)
             else:
                 packet = msgr.safe_recv(rsk)
                 if 0 == len(packet):
                     sockets.remove(rsk)
                 else:
                     msg = json.loads(packet)
-                    engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['rev'],
-                                                            msg['type'], msg['c'], msg['pos']))
+                    buf = '{},{},{},{},{}\n'.format(msg['pid'], msg['rev'],
+                                                msg['type'], msg['c'], msg['pos']).encode()
+                    engine.stdin.write(buf)
+                    engine.stdin.flush()
+
                     ct += 1
 
         for i in range(ct):
             revision += 1
 
-            data = engine.stdout.readline()
+            data = engine.stdout.readline().decode()
             msg = line2msg(data)
-            buf = op_perform(buf, msg)
+            docbuf = op_perform(docbuf, msg)
 
             for sk in sockets[1:]:
                 msgr.safe_send(sk, json.dumps(msg))
+
+        print(''.join(docbuf))
 
 if __name__ == '__main__':
     main()

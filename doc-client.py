@@ -2,8 +2,10 @@
 
 import argparse
 import json
+import select
 import socket
 import subprocess as sp
+import time
 
 import document
 import messenger as msgr
@@ -37,9 +39,6 @@ class DocClient:
         self.revision = msg['rev']
         self.initial_state = msgr.safe_recv(self.sk)
 
-        print(msg)
-        print(self.initial_state)
-
         self.engine = sp.Popen(['./client', str(self.pid), str(self.revision)], stdin=sp.PIPE, stdout=sp.PIPE)
 
         return
@@ -71,7 +70,9 @@ class DocClient:
         return self.initial_state
 
     def send_op(self, op):
-        self.engine.stdin.write('-1,0,{},{},{}\n'.format(op[0], op[1], op[2]))
+        buf = '-1,0,{},{},{}\n'.format(op[0], op[1], op[2]).encode()
+        self.engine.stdin.write(buf)
+        self.engine.stdin.flush()
         return
 
     def recv_ops(self):
@@ -80,22 +81,24 @@ class DocClient:
 
         while True:
             rlist = [self.sk]
-            rlist, _, _ = select.select(rlist, [], [])
+            rlist, _, _ = select.select(rlist, [], [], 0.001)
             if 0 == len(rlist):
                 break
             messages.append(json.loads(msgr.safe_recv(self.sk)))
 
         for msg in messages:
-            self.engine.stdin.write('{},{},{},{},{}\n'.format(msg['pid'], msg['rev'], msg['type'],
-                                                                msg['c'], msg['pos']))
+            buf = '{},{},{},{},{}\n'.format(msg['pid'], msg['rev'], msg['type'],
+                                                                msg['c'], msg['pos']).encode()
+            self.engine.stdin.write(buf)
+        self.engine.stdin.flush()
         messages.clear()
 
         while True:
             rlist = [self.engine.stdout]
-            rlist, _, _ = select.select(rlist, [], [])
+            rlist, _, _ = select.select(rlist, [], [], 0.001)
             if 0 == len(rlist):
                 break
-            data = self.engine.stdout.readline().split[',']
+            data = self.engine.stdout.readline().decode().split(',')
             msg = dict()
             msg['pid'] = int(data[0])
             msg['rev'] = int(data[1])
@@ -117,5 +120,15 @@ if __name__ == '__main__':
     client = DocClient("myfile", ADDR, PORT)
 
     # TODO enter some text
+    client.send_op((1, 'c', 0))
+    client.send_op((1, 'o', 1))
+    client.send_op((1, 'n', 2))
+    client.send_op((1, 'n', 3))
+
+    ops = []
+    for i in range(20):
+        ops.extend(client.recv_ops())
+        time.sleep(1)
+    print(ops)
 
     del(client)
