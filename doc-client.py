@@ -37,7 +37,7 @@ class DocClient:
 
         self.pid = msg['pid']
         self.revision = msg['rev']
-        self.initial_state = msgr.safe_recv(self.sk)
+        self.docbuf = list(map(ord, list(msgr.safe_recv(self.sk))))
 
         self.engine = sp.Popen(['./client', str(self.pid), str(self.revision)], stdin=sp.PIPE, stdout=sp.PIPE)
 
@@ -64,15 +64,33 @@ class DocClient:
         return
 
     def __str__(self):
-        return 'Not implemented OMEGALUL'
+        return ''.join(map(chr, self.docbuf))
 
-    def get_initial_state(self):
-        return self.initial_state
+    def op_perform(self, msg):
+        typ = msg['type']
+        c = msg['c']
+        pos = msg['pos']
+
+        if 1 == typ:
+            if len(self.docbuf) < pos:
+                self.docbuf.extend([32] * (pos - len(self.docbuf)))
+            self.docbuf.insert(pos, c)
+        elif 2 == typ:
+            self.docbuf.pop(pos)
+
+        return
 
     def send_op(self, op):
+        msg = dict()
+        msg['type'] = op[0]
+        msg['c'] = op[1]
+        msg['pos'] = op[2]
+        self.op_perform(msg)
+
         buf = '-1,0,{},{},{}\n'.format(op[0], op[1], op[2]).encode()
         self.engine.stdin.write(buf)
         self.engine.stdin.flush()
+
         return
 
     def recv_ops(self):
@@ -108,6 +126,7 @@ class DocClient:
 
             if -1 == msg['pid']:
                 ops.append((msg['type'], msg['c'], msg['pos']))
+                self.op_perform(msg)
             else:
                 messages.append(msg)
 
@@ -123,13 +142,15 @@ if __name__ == '__main__':
     with open('testfile.{}'.format(client.pid), 'r') as inf:
         for line in inf:
             line = line.split(',')
-            op = (int(line[0]), line[1], int(line[2]))
+            if '\\n' == line[1]:
+                line[1] = '\n'
+            op = (int(line[0]), ord(line[1]), int(line[2]))
             client.send_op(op)
 
     ops = []
     for i in range(20):
         ops.extend(client.recv_ops())
         time.sleep(1)
-    print(ops)
+        print(client)
 
     del(client)
