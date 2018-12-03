@@ -23,7 +23,7 @@ def line2msg(line):
     msg['pid'] = int(data[0])
     msg['rev'] = int(data[1])
     msg['type'] = int(data[2])
-    msg['c'] = data[3]
+    msg['c'] = int(data[3])
     msg['pos'] = int(data[4])
 
     return msg
@@ -35,7 +35,7 @@ def op_perform(buf, msg):
 
     if 1 == typ:
         if len(buf) < pos:
-            buf.extend([' '] * (pos - len(buf)))
+            buf.extend([32] * (pos - len(buf)))
         buf.insert(pos, c)
     elif 2 == typ:
         buf.pop(pos)
@@ -69,7 +69,7 @@ def main():
                 msg['pid'] = next_pid()
 
                 msgr.safe_send(conn, json.dumps(msg))
-                msgr.safe_send(conn, ''.join(docbuf))
+                msgr.safe_send(conn, ''.join(map(chr, docbuf)))
 
                 sockets.append(conn)
             else:
@@ -95,7 +95,7 @@ def main():
             for sk in sockets[1:]:
                 msgr.safe_send(sk, json.dumps(msg))
 
-        print(''.join(docbuf))
+        print(''.join(map(chr, docbuf)))
 
 if __name__ == '__main__':
     main()
