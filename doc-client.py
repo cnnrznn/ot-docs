@@ -103,7 +103,7 @@ class DocClient:
             msg['pid'] = int(data[0])
             msg['rev'] = int(data[1])
             msg['type'] = int(data[2])
-            msg['c'] = data[3]
+            msg['c'] = int(data[3])
             msg['pos'] = int(data[4])
 
             if -1 == msg['pid']:
